@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- The file path for the CSS is assumed to be correct based on your project structure -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<!-- The body tag is where the dark mode data-theme attribute will be applied -->
+<body>
+    <div class="app-container">
+        <!-- Professional Left Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-language"></i>
+                    <span class="logo-text">Translator</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="tab-text">
+                    <i class="fas fa-font"></i>
+                    <span class="nav-text">Text Translation</span>
+                    <div class="nav-indicator"></div>
+                </button>
+                
+                <button class="nav-item" data-tab="tab-document">
+                    <i class="fas fa-file-alt"></i>
+                    <span class="nav-text">Document Translation</span>
+                    <div class="nav-indicator"></div>
+                </button>
+                
+                <button class="nav-item" data-tab="tab-image">
+                    <i class="fas fa-image"></i>
+                    <span class="nav-text">Image Translation</span>
+                    <div class="nav-indicator"></div>
+                </button>
+                
+                <button class="nav-item" data-tab="tab-history">
+                    <i class="fas fa-history"></i>
+                    <span class="nav-text">History</span>
+                    <div class="nav-indicator"></div>
+                </button>
+
+                <!-- NEW: Settings Tab Button -->
+                <button class="nav-item" data-tab="tab-settings">
+                    <i class="fas fa-cog"></i> <!-- Gear icon -->
+                    <span class="nav-text">Settings</span>
+                    <div class="nav-indicator"></div>
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <p class="footer-text">Made by Blank D Coders</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <h1 class="page-title">Universal Document Translator</h1>
+                <p class="page-subtitle">Translate text, documents, and images with AI-powered precision</p>
+            </header>
+            <!-- Text Translation Tab -->
+            <section id="tab-text" class="tab-content active">
+                <h2>Text Translation</h2>
+                <div class="form-group">
+                    <label for="target-language-select">Select Target Language:</label>
+                    <select id="target-language-select" name="target_lang">
+                        <option value="hindi" selected>Hindi (हिन्दी)</option>
+                        <option value="bengali">Bengali (বাংলা)</option>
+                        <option value="marathi">Marathi (मराठी)</option>
+                        <option value="tamil">Tamil (தமிழ்)</option>
+                        <option value="telugu">Telugu (తెలుగు)</option>
+                        <option value="irish">Irish (Gaeilge)</option>
+                        <option value="italian">Italian (Italiano)</option>
+                        <option value="spanish">Spanish (Español)</option>
+                        <option value="french">French (Français)</option>
+                        <option value="german">German (Deutsch)</option>
+                        <option value="japanese">Japanese (日本語)</option>
+                        <option value="russian">Russian (Русский)</option>
+                        <option value="arabic">Arabic (العربية)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="text-input">Enter text to translate:</label>
+                    <textarea id="text-input" rows="6" placeholder="Type or paste your text here..."></textarea>
+                </div>
+                <button id="translate-text-btn" class="btn">Translate Text</button>
+                <div id="text-translation-result" class="translation-result" style="display: none;">
+                    <h3>Translated Text:</h3>
+                    <div class="text-output">
+                        <pre id="text-translation-output"></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Document Translation Tab -->
+            <section id="tab-document" class="tab-content">
+                <h2>Translate a Document</h2>
+                <div class="form-group">
+                    <label for="doc-target-language-select">Select Target Language:</label>
+                    <select id="doc-target-language-select" name="target_lang">
+                        <option value="hindi" selected>Hindi (हिन्दी)</option>
+                        <option value="bengali">Bengali (বাংলা)</option>
+                        <option value="marathi">Marathi (मराठी)</option>
+                        <option value="tamil">Tamil (தமிழ்)</option>
+                        <option value="telugu">Telugu (తెలుగు)</option>
+                        <option value="irish">Irish (Gaeilge)</option>
+                        <option value="spanish">Spanish (Español)</option>
+                        <option value="french">French (Français)</option>
+                        <option value="german">German (Deutsch)</option>
+                        <option value="japanese">Japanese (日本語)</option>
+                        <option value="russian">Russian (Русский)</option>
+                        <option value="arabic">Arabic (العربية)</option>
+                    </select>
+                </div>
+                <form id="doc-upload-form" class="upload-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="doc-file-input">Choose a .pdf or .docx file:</label>
+                        <input type="file" id="doc-file-input" name="file" accept=".pdf,.docx">
+                    </div>
+                    <button type="submit" class="btn">Translate Document</button>
+                </form>
+                <div id="doc-task-list" class="task-list">
+                    <!-- Document tasks will be dynamically added here -->
+                </div>
+                <div id="doc-download-section" class="download-section" style="display: none;">
+                    <h3>Translation Complete</h3>
+                    <p class="download-message">Your translated document is ready!</p>
+                    <a id="doc-download-btn" href="#" class="btn btn-download" download>Download Translated Document</a>
+                    <div class="file-info">
+                        <p><strong>Original File:</strong> <span id="doc-original-filename"></span></p>
+                        <p><strong>Target Language:</strong> <span id="doc-target-language"></span></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Image Translation Tab -->
+            <section id="tab-image" class="tab-content">
+                <h2>Extract & Translate Text from Image</h2>
+                <div class="form-group">
+                    <label for="image-target-language-select">Select Target Language:</label>
+                    <select id="image-target-language-select" name="target_lang">
+                        <option value="hindi" selected>Hindi (हिन्दी)</option>
+                        <option value="bengali">Bengali (বাংলা)</option>
+                        <option value="marathi">Marathi (मराठी)</option>
+                        <option value="tamil">Tamil (தமிழ்)</option>
+                        <option value="telugu">Telugu (తెలుగు)</option>
+                        <option value="irish">Irish (Gaeilge)</option>
+                        <option value="spanish">Spanish (Español)</option>
+                        <option value="french">French (Français)</option>
+                        <option value="german">German (Deutsch)</option>
+                        <option value="japanese">Japanese (日本語)</option>
+                        <option value="russian">Russian (Русский)</option>
+                        <option value="arabic">Arabic (العربية)</option>
+                    </select>
+                </div>
+                <form id="ocr-upload-form" class="upload-form" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="ocr-file-input">Choose a .png, .jpg, or .jpeg file:</label>
+                        <input type="file" id="ocr-file-input" name="file" accept="image/png,image/jpeg,image/jpg">
+                    </div>
+                    <button type="submit" class="btn" id="ocr-submit-btn">Extract & Translate Image</button>
+                </form>
+                
+                <!-- Image Preview Section -->
+                <div id="image-preview-container" class="image-preview-container" style="display: none;">
+                    <h3>Uploaded Image Preview</h3>
+                    <div class="image-preview-wrapper">
+                        <img id="image-preview" src="" alt="Uploaded image" class="image-preview">
+                        <div id="scanning-overlay" class="scanning-overlay">
+                            <div class="scan-line"></div>
+                            <p class="scan-text">Scanning document...</p>
+                        </div>
+                    </div>
+                    <div class="image-actions">
+                        <button id="cancel-ocr-btn" class="btn btn-secondary">Cancel</button>
+                    </div>
+                </div>
+                
+                <!-- OCR Progress -->
+                <div id="ocr-task-list" class="task-list">
+                    <!-- OCR tasks will be dynamically added here -->
+                </div>
+                
+                <!-- Enhanced Results with Selectable Text -->
+                <div id="ocr-results-container" class="ocr-results-enhanced" style="display: none;">
+                    <h3>✨ Extraction Complete</h3>
+                    <div class="results-grid">
+                        <!-- Original Text Panel -->
+                        <div class="result-panel">
+                            <div class="panel-header">
+                                <h4>📝 Original Extracted Text</h4>
+                                <button class="copy-btn" data-target="original-text-output-selectable" title="Copy all text">
+                                    <span class="copy-icon">📋</span> Copy
+                                </button>
+                            </div>
+                            <div class="selectable-text-container">
+                                <div id="original-text-output-selectable" class="selectable-text"></div>
+                            </div>
+                            <p class="text-hint">Click and drag to select text, or click Copy to copy all</p>
+                        </div>
+                        
+                        <!-- Translated Text Panel -->
+                        <div class="result-panel">
+                            <div class="panel-header">
+                                <h4>🌍 Translated Text</h4>
+                                <button class="copy-btn" data-target="translated-text-output-selectable" title="Copy all text">
+                                    <span class="copy-icon">📋</span> Copy
+                                </button>
+                            </div>
+                            <div class="selectable-text-container">
+                                <div id="translated-text-output-selectable" class="selectable-text"></div>
+                            </div>
+                            <p class="text-hint">Click and drag to select text, or click Copy to copy all</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Download Button -->
+                    <div class="download-section-compact">
+                        <a id="ocr-download-link" href="#" class="btn btn-download" style="display: none;">
+                            <span>⬇️</span> Download Complete Text (.txt)
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History Tab -->
+            <section id="tab-history" class="tab-content">
+                <h2>Translation History</h2>
+                <div class="history-controls">
+                    <button id="clear-history-btn" class="btn btn-secondary">Clear History</button>
+                </div>
+                <div id="history-list" class="history-list">
+                    <p class="empty-history">No translation history yet. Start translating to see your history here.</p>
+                </div>
+            </section>
+
+            <!-- NEW: Settings Tab Content -->
+            <section id="tab-settings" class="tab-content">
+                <h2>Application Settings</h2>
+                
+                <!-- Appearance Card -->
+                <div class="settings-card">
+                    <h3><i class="fas fa-palette"></i> Appearance</h3>
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label for="theme-toggle">Dark Mode</label>
+                            <p>Toggle between light and dark themes.</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="theme-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behavior Card -->
+                <div class="settings-card">
+                    <h3><i class="fas fa-bullhorn"></i> Notifications & Behavior</h3>
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label for="accuracy-toggle">Show Accuracy Warnings</label>
+                            <p>Show a warning when translating complex languages.</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="accuracy-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Placeholder for more settings -->
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <label for="toast-toggle">Show Success Notifications</label>
+                            <p>Show a pop-up toast on successful actions (e.g., "Copied!").</p>
+                        </div>
+                        <div class="setting-control">
+                            <label class="switch">
+                                <input type="checkbox" id="toast-toggle" checked disabled>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- About Card -->
+                <div class="settings-card">
+                    <h3><i class="fas fa-info-circle"></i> About</h3>
+                    <div class="app-info">
+                        <p><strong>Universal Document Translator</strong></p>
+                        <p>Version: 1.0.0 (Beta)</p>
+                        <p>Powered by Blank D Coders.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Development Mode Popup -->
+    <div id="dev-mode-overlay">
+        <div id="dev-mode-popup" role="dialog" aria-modal="true" aria-labelledby="dev-mode-title">
+            <div class="dev-mode-header">
+                <div class="dev-mode-icon">⚠️</div>
+                <h2 id="dev-mode-title" class="dev-mode-title">Development Mode</h2>
+            </div>
+            <div class="dev-mode-body">
+                <p>Welcome! This application is currently in <strong>active development.</strong></p>
+                <p>Features may change, and you might encounter bugs. Your patience is appreciated!</p>
+            </div>
+            <div class="dev-mode-actions">
+                <button id="dev-mode-close-btn" class="btn">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Development Mode Popup Logic ---
+            const devOverlay = document.getElementById('dev-mode-overlay');
+            const devCloseBtn = document.getElementById('dev-mode-close-btn');
+
+            if (devOverlay && devCloseBtn) {
+                // Show the popup only if it hasn't been dismissed this session
+                if (sessionStorage.getItem('devModeDismissed') !== 'true') {
+                    devOverlay.classList.add('active');
+                }
+
+                // Add close event
+                devCloseBtn.addEventListener('click', () => {
+                    devOverlay.classList.remove('active');
+                    // Remember dismissal for this session
+                    sessionStorage.setItem('devModeDismissed', 'true');
+                });
+            }
+            
+            // --- NEW: Settings Logic ---
+            const themeToggle = document.getElementById('theme-toggle');
+            const accuracyToggle = document.getElementById('accuracy-toggle');
+            const bodyEl = document.body;
+
+            // 1. Theme Toggle Logic
+            if (themeToggle) {
+                // On load, check saved theme
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                bodyEl.setAttribute('data-theme', savedTheme);
+                if (savedTheme === 'dark') {
+                    themeToggle.checked = true;
+                }
+
+                // Add listener
+                themeToggle.addEventListener('change', () => {
+                    if (themeToggle.checked) {
+                        bodyEl.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        bodyEl.setAttribute('data-theme', 'light');
+                        localStorage.setItem('theme', 'light');
+                    }
+                });
+            }
+
+            // 2. Accuracy Warning Toggle Logic
+            if (accuracyToggle) {
+                // On load, check saved preference
+                // Note: Logic is inverted. 'suppress' == true means toggle is OFF
+                const isAccuracyWarningSuppressed = localStorage.getItem('suppressAccuracyModal') === 'true';
+                accuracyToggle.checked = !isAccuracyWarningSuppressed; // Set checked if *not* suppressed
+
+                // Add listener
+                accuracyToggle.addEventListener('change', () => {
+                    if (accuracyToggle.checked) {
+                        // "Show warnings" is ON, so we set 'suppress' to 'false'
+                        localStorage.setItem('suppressAccuracyModal', 'false');
+                        showToast('Accuracy warnings will now be shown for complex languages.', 'info');
+                    } else {
+                        // "Show warnings" is OFF, so we set 'suppress' to 'true'
+                        localStorage.setItem('suppressAccuracyModal', 'true');
+                        showToast('Accuracy warnings will no longer be shown.', 'info');
+                    }
+                });
+            }
+
+            // --- Accuracy Modal Elements & Logic ---
+            const accuracyModalOverlay = document.createElement('div');
+            accuracyModalOverlay.id = 'accuracy-modal-overlay';
+            accuracyModalOverlay.className = 'modal-overlay';
+            accuracyModalOverlay.innerHTML = `
+                <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+                    <div class="modal-header">
+                        <div style="font-size:1.6rem;color:var(--primary-color);">⚠️</div>
+                        <div>
+                            <div id="modal-title" class="modal-title">Translation Accuracy Notice</div>
+                            <div style="font-size:0.85rem;color:var(--text-light);">Machine translation advisory</div>
+                        </div>
+                    </div>
+                    <div class="modal-body" id="modal-body">
+                        Machine translation may not be completely accurate for some languages, scripts, or domain-specific content. Please review translated results carefully before use.
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <label class="modal-checkbox"><input type="checkbox" id="modal-dont-show"> Don't show this again</label>
+                        <div class="modal-actions">
+                            <button id="modal-learn-more" class="btn-secondary small">Learn more</button>
+                            <button id="modal-continue-btn" class="btn">Continue</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(accuracyModalOverlay);
+
+            const modalDontShow = document.getElementById('modal-dont-show');
+            const modalContinueBtn = document.getElementById('modal-continue-btn');
+            const modalLearnMoreBtn = document.getElementById('modal-learn-more');
+
+            // List of languages where users should be explicitly warned (value attributes)
+            const limitedLanguages = ['hindi','bengali','marathi','tamil','telugu','arabic','japanese','russian'];
+
+            function showAccuracyModal(langDisplayName) {
+                return new Promise((resolve) => {
+                    // Check the setting from localStorage
+                    const suppressed = localStorage.getItem('suppressAccuracyModal') === 'true';
+                    if (suppressed) return resolve();
+
+                    const modalBody = document.getElementById('modal-body');
+                    modalBody.textContent = `Machine translation for ${langDisplayName} may not be completely accurate, especially for complex scripts, formatting, or domain-specific text. Please review the translated result and verify layout and spelling.`;
+                    accuracyModalOverlay.classList.add('active');
+
+                    function cleanup() {
+                        accuracyModalOverlay.classList.remove('active');
+                        modalContinueBtn.removeEventListener('click', onContinue);
+                        modalLearnMoreBtn.removeEventListener('click', onLearnMore);
+                    }
+
+                    function onContinue() {
+                        if (modalDontShow && modalDontShow.checked) {
+                            localStorage.setItem('suppressAccuracyModal', 'true');
+                            // Also update the settings toggle if it exists
+                            if (accuracyToggle) {
+                                accuracyToggle.checked = false;
+                            }
+                        }
+                        cleanup();
+                        resolve();
+                    }
+
+                    function onLearnMore() {
+                        // Open a lightweight docs page or external resource. For now, open a new tab to a placeholder.
+                        window.open('https://en.wikipedia.org/wiki/Machine_translation', '_blank');
+                    }
+
+                    modalContinueBtn.addEventListener('click', onContinue);
+                    modalLearnMoreBtn.addEventListener('click', onLearnMore);
+                });
+            }
+            // --- Toast / Error handling helpers ---
+            function ensureToastContainer() {
+                let container = document.querySelector('.toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.className = 'toast-container';
+                    document.body.appendChild(container);
+                }
+                return container;
+            }
+
+            function showToast(message, type = 'info', timeout = 4000) {
+                try {
+                    const container = ensureToastContainer();
+                    const t = document.createElement('div');
+                    t.className = `toast ${type}`;
+                    t.textContent = message;
+                    container.appendChild(t);
+                    // allow CSS to animate in
+                    requestAnimationFrame(() => t.classList.add('show'));
+                    if (timeout > 0) {
+                        setTimeout(() => {
+                            t.classList.remove('show');
+                            setTimeout(() => t.remove(), 300);
+                        }, timeout);
+                    }
+                    return t;
+                } catch (e) {
+                    // swallow - best effort only
+                    console.error('showToast failed', e);
+                }
+            }
+
+            // Show uncaught JS errors as an on-page toast so developers can see them in the UI
+            window.addEventListener('error', function (event) {
+                try {
+                    const msg = event && event.message ? event.message : 'Unknown JS error';
+                    showToast(`JS Error: ${msg}`, 'error', 0);
+                    console.error('Uncaught error:', event.error || event.message, event.error ? event.error.stack : '');
+                } catch (e) {
+                    console.error('error handler failed', e);
+                }
+            });
+            const navItems = document.querySelectorAll('.nav-item');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // --- Sidebar Navigation Switching Logic ---
+            navItems.forEach(navItem => {
+                navItem.addEventListener('click', () => {
+                    // Remove active class from all nav items and content
+                    navItems.forEach(item => item.classList.remove('active'));
+                    tabContents.forEach(item => item.classList.remove('active'));
+
+                    // Add active class to clicked nav item and corresponding content
+                    navItem.classList.add('active');
+                    const activeTab = document.getElementById(navItem.dataset.tab);
+                    if (activeTab) {
+                        activeTab.classList.add('active');
+                    }
+                });
+            });
+
+            const docUploadForm = document.getElementById('doc-upload-form');
+            const docFileInput = document.getElementById('doc-file-input');
+            const docTaskList = document.getElementById('doc-task-list');
+
+            const ocrUploadForm = document.getElementById('ocr-upload-form');
+            const ocrFileInput = document.getElementById('ocr-file-input');
+            const ocrTaskList = document.getElementById('ocr-task-list');
+            
+            const ocrResultsContainer = document.getElementById('ocr-results-container');
+            // Prefer the selectable output elements; fall back if older IDs are present
+            const originalTextOutput = document.getElementById('original-text-output-selectable') || document.getElementById('original-text-output');
+            const translatedTextOutput = document.getElementById('translated-text-output-selectable') || document.getElementById('translated-text-output');
+            const ocrDownloadLink = document.getElementById('ocr-download-link');
+
+            // Language selectors for each tab
+            const textLanguageSelect = document.getElementById('target-language-select');
+            const docLanguageSelect = document.getElementById('doc-target-language-select');
+            const imageLanguageSelect = document.getElementById('image-target-language-select');
+
+            // When user selects a language with known limitations, show the advisory (non-blocking)
+            [textLanguageSelect, docLanguageSelect, imageLanguageSelect].forEach(sel => {
+                if (sel) { // Check if element exists
+                    sel.addEventListener('change', function() {
+                        try {
+                            const val = sel.value;
+                            if (limitedLanguages.includes(val)) {
+                                // show but don't block the user's flow
+                                showAccuracyModal(sel.options[sel.selectedIndex].text || val);
+                            }
+                        } catch (e) {
+                            // ignore
+                        }
+                    });
+                }
+            });
+
+            // Text Translation Elements
+            const textInput = document.getElementById('text-input');
+            const translateTextBtn = document.getElementById('translate-text-btn');
+            const textTranslationResult = document.getElementById('text-translation-result');
+            const textTranslationOutput = document.getElementById('text-translation-output');
+
+            // Document Download Section Elements
+            const docDownloadSection = document.getElementById('doc-download-section');
+            const docDownloadBtn = document.getElementById('doc-download-btn');
+            const docOriginalFilename = document.getElementById('doc-original-filename');
+            const docTargetLanguage = document.getElementById('doc-target-language');
+
+            // OCR-specific elements
+            const imagePreviewContainer = document.getElementById('image-preview-container');
+            const imagePreview = document.getElementById('image-preview');
+            const scanningOverlay = document.getElementById('scanning-overlay');
+            const cancelOcrBtn = document.getElementById('cancel-ocr-btn');
+            const ocrSubmitBtn = document.getElementById('ocr-submit-btn');
+            const originalTextOutputSelectable = document.getElementById('original-text-output-selectable');
+            const translatedTextOutputSelectable = document.getElementById('translated-text-output-selectable');
+            
+            let currentOcrTaskId = null;
+
+            // History Elements
+            const historyList = document.getElementById('history-list');
+            const clearHistoryBtn = document.getElementById('clear-history-btn');
+
+            // Load history from localStorage (guarded so UI init doesn't break)
+            try { 
+                if (historyList) { // Check if history list exists
+                    loadHistory(); 
+                }
+            } catch (e) { console.error('loadHistory failed', e); showToast('UI initialization error: ' + (e && e.message ? e.message : e), 'error', 0); }
+
+            // --- Text Translation Handler ---
+            if (translateTextBtn) {
+                translateTextBtn.addEventListener('click', async function() {
+                    const text = textInput.value.trim();
+                    if (!text) {
+                        showToast('Please enter some text to translate.', 'warning');
+                        return;
+                    }
+
+                    const targetLang = textLanguageSelect.value;
+                    const targetLangLabel = textLanguageSelect.options[textLanguageSelect.selectedIndex].text || targetLang;
+
+                    // Show accuracy modal before starting translation (if not suppressed)
+                    await showAccuracyModal(targetLangLabel);
+
+                    translateTextBtn.disabled = true;
+                    translateTextBtn.textContent = 'Translating...';
+
+                    fetch('/translate_text', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            text: text,
+                            target_lang: targetLang
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Server error: ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+                        textTranslationOutput.textContent = data.translated_text;
+                        textTranslationResult.style.display = 'block';
+                        
+                        // Add to history
+                        addToHistory({
+                            type: 'text',
+                            original: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+                            translated: data.translated_text.substring(0, 100) + (data.translated_text.length > 100 ? '...' : ''),
+                            language: targetLang,
+                            timestamp: new Date().toISOString()
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast(`Translation failed: ${error.message}`, 'error');
+                    })
+                    .finally(() => {
+                        translateTextBtn.disabled = false;
+                        translateTextBtn.textContent = 'Translate Text';
+                    });
+                });
+            }
+
+            // --- Clear History Handler ---
+            if (clearHistoryBtn) {
+                clearHistoryBtn.addEventListener('click', function() {
+                    // For now, just a toast. Replace with a custom modal for confirmation.
+                    if (confirm('Are you sure you want to clear all translation history? This cannot be undone.')) {
+                        localStorage.removeItem('translationHistory');
+                        loadHistory();
+                        showToast('Translation history cleared.', 'info');
+                    }
+                });
+            }
+
+            // --- Document Upload Handler ---
+            if (docUploadForm) {
+                docUploadForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const file = docFileInput.files[0];
+                    if (!file) {
+                        showToast('Please select a document file first.', 'warning');
+                        return;
+                    }
+
+                    // Hide previous download section
+                    docDownloadSection.style.display = 'none';
+
+                    const targetLang = docLanguageSelect.value;
+                    const targetLangLabel = docLanguageSelect.options[docLanguageSelect.selectedIndex].text || targetLang;
+
+                    // Show accuracy modal before upload/translation
+                    await showAccuracyModal(targetLangLabel);
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('target_lang', targetLang);
+
+                    const taskItem = createProgressElement(file.name, docTaskList);
+                    // Store filename and language for later use
+                    taskItem.dataset.originalFilename = file.name;
+                    taskItem.dataset.targetLanguage = targetLang;
+
+                    fetch('/upload_document', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Server error: ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+                        taskItem.dataset.taskId = data.task_id;
+                        pollDocumentTask(data.task_id, taskItem);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        updateProgressElement(taskItem, 0, `Error: ${error.message}`, true);
+                        showToast(`Upload failed: ${error.message}`, 'error');
+                    });
+                });
+            }
+
+            // --- Enhanced Image (OCR) Upload Handler with Preview ---
+            if (ocrUploadForm) {
+                ocrUploadForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const file = ocrFileInput.files[0];
+                    if (!file) {
+                        showToast('Please select an image file first.', 'warning');
+                        return;
+                    }
+
+                    const targetLangLabel = imageLanguageSelect.options[imageLanguageSelect.selectedIndex].text || imageLanguageSelect.value;
+                    await showAccuracyModal(targetLangLabel);
+
+                    // Show image preview
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        imagePreview.src = event.target.result;
+                        imagePreviewContainer.style.display = 'block';
+                        ocrResultsContainer.style.display = 'none';
+                        
+                        // Scroll to preview
+                        imagePreviewContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Start scanning animation after a brief delay
+                        setTimeout(() => {
+                            startScanning();
+                            uploadAndProcessImage(file);
+                        }, 500);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // Cancel OCR processing
+            if (cancelOcrBtn) {
+                cancelOcrBtn.addEventListener('click', function() {
+                    stopScanning();
+                    imagePreviewContainer.style.display = 'none';
+                    ocrFileInput.value = ''; // Clear file input
+                    currentOcrTaskId = null;
+                    // Maybe also clear task list?
+                    if (ocrTaskList) ocrTaskList.innerHTML = '';
+                });
+            }
+
+            function startScanning() {
+                if(scanningOverlay) scanningOverlay.classList.add('active');
+                if(ocrSubmitBtn) ocrSubmitBtn.disabled = true;
+            }
+
+            function stopScanning() {
+                if(scanningOverlay) scanningOverlay.classList.remove('active');
+                if(ocrSubmitBtn) ocrSubmitBtn.disabled = false;
+            }
+
+            function uploadAndProcessImage(file) {
+                const targetLang = imageLanguageSelect.value;
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('target_lang', targetLang);
+
+                // Hide old results
+                if (ocrResultsContainer) ocrResultsContainer.style.display = 'none';
+
+                const taskItem = createProgressElement(file.name, ocrTaskList);
+
+                fetch('/upload_image', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    currentOcrTaskId = data.task_id;
+                    taskItem.dataset.taskId = data.task_id;
+                    pollOcrTaskEnhanced(data.task_id, taskItem);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    updateProgressElement(taskItem, 0, `Error: ${error.message}`, true);
+                    stopScanning();
+                    if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
+                    showToast(`Image upload failed: ${error.message}`, 'error');
+                });
+            }
+
+            // --- Task Polling Functions ---
+            function pollDocumentTask(taskId, taskItem) {
+                const interval = setInterval(() => {
+                    // Only poll if task is still relevant
+                    if (!document.body.contains(taskItem)) {
+                        clearInterval(interval);
+                        return;
+                    }
+                    
+                    fetch(`/task_status/${taskId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Server error: ${response.statusText}`);
+                            }
+                            return response.json();
+                        })
+                        .then(task => {
+                            console.log('Task status update:', task);
+                            
+                            if (task.status === 'processing') {
+                                updateProgressElement(taskItem, task.progress, `Processing... ${task.progress}%`);
+                            } else if (task.status === 'completed') {
+                                clearInterval(interval);
+                                console.log('Translation completed! Download URL:', task.download_url);
+                                updateProgressElement(taskItem, 100, 'Completed.', false, task.download_url);
+                                
+                                // Show download section
+                                if (task.download_url) {
+                                    console.log('Setting up download section with URL:', task.download_url);
+                                    docDownloadBtn.href = task.download_url;
+                                    docOriginalFilename.textContent = taskItem.dataset.originalFilename || 'N/A';
+                                    docTargetLanguage.textContent = taskItem.dataset.targetLanguage || 'N/A';
+                                    docDownloadSection.style.display = 'block';
+                                    console.log('Download section displayed');
+                                    
+                                    // Scroll to download section
+                                    docDownloadSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                                } else {
+                                    console.warn('No download URL provided in task response!');
+                                    throw new Error('Task completed but no download URL received.');
+                                }
+                                
+                                // Add to history
+                                const filenameEl = taskItem.querySelector('.filename');
+                                const filename = filenameEl ? filenameEl.textContent : 'unknown file';
+                                addToHistory({
+                                    type: 'document',
+                                    filename: filename,
+                                    language: docLanguageSelect.value,
+                                    downloadUrl: task.download_url,
+                                    timestamp: new Date().toISOString()
+                                });
+                            } else if (task.status === 'error') {
+                                clearInterval(interval);
+                                console.error('Translation error:', task.error);
+                                updateProgressElement(taskItem, 0, `Error: ${task.error}`, true);
+                                showToast(`Translation Error: ${task.error}`, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            clearInterval(interval);
+                            console.error('Polling error:', error);
+                            updateProgressElement(taskItem, 0, `Error: Could not get task status.`, true);
+                            showToast(`Polling error: ${error.message}`, 'error');
+                        });
+                }, 2000); // Poll every 2 seconds
+            }
+
+            // Enhanced OCR polling with selectable text display
+            function pollOcrTaskEnhanced(taskId, taskItem) {
+                const interval = setInterval(() => {
+                    // Only poll if task is still relevant
+                    if (currentOcrTaskId !== taskId || !document.body.contains(taskItem)) {
+                        clearInterval(interval);
+                        return;
+                    }
+
+                    fetch(`/task_status/${taskId}`)
+                        .then(response => {
+                             if (!response.ok) {
+                                throw new Error(`Server error: ${response.statusText}`);
+                            }
+                            return response.json();
+                        })
+                        .then(task => {
+                            let statusText = `Processing... ${task.progress}%`;
+                            if (task.status === 'processing' && task.progress > 20) {
+                                statusText = `Extracting text... ${task.progress}%`;
+                            }
+                            if (task.status === 'processing' && task.progress > 50) {
+                                statusText = `Translating... ${task.progress}%`;
+                            }
+
+                            if (task.status === 'processing') {
+                                updateProgressElement(taskItem, task.progress, statusText);
+                            } else if (task.status === 'completed') {
+                                clearInterval(interval);
+                                stopScanning();
+                                
+                                // Hide image preview, show results
+                                setTimeout(() => {
+                                    if(imagePreviewContainer) imagePreviewContainer.style.display = 'none';
+                                    updateProgressElement(taskItem, 100, 'Completed.');
+                                    
+                                    // Display results with selectable text
+                                    displaySelectableResults(task.original_text, task.translated_text, task.download_url, task.translated_text_file);
+                                    
+                                    // Add to history
+                                    const filenameEl = taskItem.querySelector('.filename');
+                                    const filename = filenameEl ? filenameEl.textContent : 'unknown file';
+                                    addToHistory({
+                                        type: 'image',
+                                        filename: filename,
+                                        original: (task.original_text || '').substring(0, 100) + ((task.original_text || '').length > 100 ? '...' : ''),
+                                        translated: (task.translated_text || '').substring(0, 100) + ((task.translated_text || '').length > 100 ? '...' : ''),
+                                        language: imageLanguageSelect.value,
+                                        downloadUrl: task.download_url,
+                                        timestamp: new Date().toISOString()
+                                    });
+                                }, 500);
+
+                            } else if (task.status === 'error') {
+                                clearInterval(interval);
+                                stopScanning();
+                                if(imagePreviewContainer) imagePreviewContainer.style.display = 'none';
+                                updateProgressElement(taskItem, 0, `Error: ${task.error}`, true);
+                                showToast(`OCR Error: ${task.error}`, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            clearInterval(interval);
+                            stopScanning();
+                            if(imagePreviewContainer) imagePreviewContainer.style.display = 'none';
+                            console.error('Polling error:', error);
+                            updateProgressElement(taskItem, 0, `Error: Could not get task status.`, true);
+                            showToast(`Polling error: ${error.message}`, 'error');
+                        });
+                }, 2000);
+            }
+
+            // Display results with selectable text
+            function displaySelectableResults(originalText, translatedText, downloadUrl, filename) {
+                // Populate selectable text areas
+                if (originalTextOutputSelectable) originalTextOutputSelectable.textContent = originalText || 'No text extracted.';
+                if (translatedTextOutputSelectable) translatedTextOutputSelectable.textContent = translatedText || 'Translation failed.';
+                
+                // Show download button
+                if (downloadUrl && ocrDownloadLink) {
+                    ocrDownloadLink.href = downloadUrl;
+                    ocrDownloadLink.download = filename;
+                    ocrDownloadLink.style.display = 'inline-block';
+                }
+                
+                // Show results container
+                if (ocrResultsContainer) {
+                    ocrResultsContainer.style.display = 'block';
+                    ocrResultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+
+            // Copy button functionality
+            document.addEventListener('click', function(e) {
+                const copyButton = e.target.closest('.copy-btn');
+                if (copyButton) {
+                    const targetId = copyButton.dataset.target;
+                    const textElement = document.getElementById(targetId);
+                    
+                    if (textElement) {
+                        const text = textElement.textContent;
+                        // Fallback for insecure contexts (like http)
+                        try {
+                            if (navigator.clipboard && window.isSecureContext) {
+                                navigator.clipboard.writeText(text).then(() => {
+                                    showCopiedFeedback(copyButton);
+                                }).catch(err => {
+                                    console.warn('Clipboard API failed, using fallback:', err);
+                                    fallbackCopyTextToClipboard(text, copyButton);
+                                });
+                            } else {
+                                fallbackCopyTextToClipboard(text, copyButton);
+                            }
+                        } catch(e) {
+                             console.warn('Clipboard API not available, using fallback:', e);
+                             fallbackCopyTextToClipboard(text, copyButton);
+                        }
+                    }
+                }
+            });
+            
+            function fallbackCopyTextToClipboard(text, btn) {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                
+                // Avoid scrolling to bottom
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.position = "fixed";
+
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+
+                try {
+                    const successful = document.execCommand('copy');
+                    if(successful) {
+                        showCopiedFeedback(btn);
+                    } else {
+                        throw new Error('Fallback copy failed');
+                    }
+                } catch (err) {
+                    console.error('Fallback: Oops, unable to copy', err);
+                    showToast('Failed to copy text.', 'error');
+                }
+                document.body.removeChild(textArea);
+            }
+
+            function showCopiedFeedback(btn) {
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<span class="copy-icon">✅</span> Copied!';
+                btn.disabled = true;
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                }, 2000);
+            }
+
+
+            // --- UI Helper Functions ---
+            function createProgressElement(filename, listElement) {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+                
+                taskItem.innerHTML = `
+                    <span class="filename">${filename}</span>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                    <span class="status">Starting...</span>
+                    <a href="#" class="download-link" style="display: none;">Download</a>
+                `;
+                
+                if (listElement) {
+                    listElement.prepend(taskItem);
+                }
+                return taskItem;
+            }
+
+            function updateProgressElement(taskItem, progress, status, isError = false, downloadUrl = null) {
+                const progressBar = taskItem.querySelector('.progress-bar');
+                const statusText = taskItem.querySelector('.status');
+                const downloadLink = taskItem.querySelector('.download-link');
+
+                if (progressBar) progressBar.style.width = `${progress}%`;
+                if (statusText) statusText.textContent = status;
+
+                if (isError) {
+                    if (progressBar) progressBar.style.backgroundColor = 'var(--danger-color)';
+                    if (statusText) statusText.style.color = 'var(--danger-color)';
+                } else if (progress === 100) {
+                     if (progressBar) progressBar.style.backgroundColor = 'var(--success-color)';
+                } else {
+                     if (progressBar) progressBar.style.backgroundColor = 'var(--primary-color)';
+                }
+
+                if (downloadUrl && downloadLink) {
+                    downloadLink.href = downloadUrl;
+                    downloadLink.style.display = 'inline-block';
+                    if (statusText) statusText.style.display = 'none';
+                    if (progressBar) progressBar.parentElement.style.display = 'none';
+                }
+            }
+
+            // --- History Management Functions ---
+            function addToHistory(entry) {
+                try {
+                    let history = JSON.parse(localStorage.getItem('translationHistory') || '[]');
+                    history.unshift(entry); // Add to beginning
+                    
+                    // Keep only last 50 entries
+                    if (history.length > 50) {
+                        history = history.slice(0, 50);
+                    }
+                    
+                    localStorage.setItem('translationHistory', JSON.stringify(history));
+                    if (historyList) { // Only load if history list is on the page
+                        loadHistory();
+                    }
+                } catch (e) {
+                    console.error("Failed to add to history:", e);
+                    showToast("Could not save to history (localStorage may be full or disabled).", "warning");
+                }
+            }
+
+            function loadHistory() {
+                if (!historyList) return; // Don't run if the element doesn't exist
+
+                try {
+                    const history = JSON.parse(localStorage.getItem('translationHistory') || '[]');
+                    
+                    if (history.length === 0) {
+                        historyList.innerHTML = '<p class="empty-history">No translation history yet. Start translating to see your history here.</p>';
+                        return;
+                    }
+
+                    historyList.innerHTML = history.map((entry, index) => {
+                        const date = new Date(entry.timestamp);
+                        const formattedDate = date.toLocaleString();
+                        const typeIcon = entry.type === 'text' ? '📝' : entry.type === 'document' ? '📄' : '🖼️';
+                        
+                        // Sanitize to prevent basic XSS
+                        const safeLanguage = entry.language ? String(entry.language).replace(/</g, "&lt;") : 'N/A';
+                        const safeFilename = entry.filename ? String(entry.filename).replace(/</g, "&lt;") : '';
+                        const safeOriginal = entry.original ? String(entry.original).replace(/</g, "&lt;") : '';
+                        const safeTranslated = entry.translated ? String(entry.translated).replace(/</g, "&lt;") : '';
+                        const safeDownloadUrl = entry.downloadUrl ? String(entry.downloadUrl).replace(/"/g, "&quot;") : '';
+
+                        return `
+                            <div class="history-item">
+                                <div class="history-header">
+                                    <span class="history-type">${typeIcon} ${entry.type.charAt(0).toUpperCase() + entry.type.slice(1)}</span>
+                                    <span class="history-date">${formattedDate}</span>
+                                </div>
+                                <div class="history-content">
+                                    <div class="history-language"><strong>Target:</strong> ${safeLanguage}</div>
+                                    ${safeFilename ? `<div class="history-filename"><strong>File:</strong> ${safeFilename}</div>` : ''}
+                                    ${safeOriginal ? `<div class="history-text"><strong>Original:</strong> ${safeOriginal}</div>` : ''}
+                                    ${safeTranslated ? `<div class="history-text"><strong>Translated:</strong> ${safeTranslated}</div>` : ''}
+                                    ${safeDownloadUrl ? `<a href="${safeDownloadUrl}" class="history-download" download>Download</a>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } catch (e) {
+                     console.error("Failed to load history:", e);
+                     historyList.innerHTML = '<p class="empty-history" style="color:var(--danger-color);">Could not load history. LocalStorage may be disabled.</p>';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
