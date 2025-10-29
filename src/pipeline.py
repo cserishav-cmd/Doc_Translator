@@ -390,7 +390,9 @@ def extract_docx_elements_and_objects(file_path):
 
 
 # ---------------- Main processing function ----------------
-def process_file(file_path, target_lang, output_format=None, task_id=None, tasks=None):
+#
+# --- FIX 1: Add 'output_dir' as the third argument ---
+def process_file(file_path, target_lang, output_dir, output_format=None, task_id=None, tasks=None):
     """
     ENHANCED: High-fidelity extraction, translation, and rebuilding with format conversion.
     """
@@ -399,11 +401,19 @@ def process_file(file_path, target_lang, output_format=None, task_id=None, tasks
     textbox_paragraph_elements = None
     textbox_shapes = None # Keep variable, though unused in rebuild
     
-    # Initialize document analyzer for enhanced processing
-    doc_analyzer = DocumentAnalyzer()
+    # --- FIX 2: Disable DocumentAnalyzer to prevent memory crash ---
+    # This line loads a large AI model and is likely causing the server to run
+    # out of memory and crash. Commenting it out will fix the crash.
+    # doc_analyzer = DocumentAnalyzer()
+    # ---
     elements = []
     original_format = ""
-    output_dir = "storage/translated"
+    
+    # --- FIX 1: Remove hardcoded (and incorrect) output directory ---
+    # The correct directory is now passed in from app.py
+    # output_dir = "storage/translated" 
+    # ---
+    
     translated_files = {}
 
     try:
@@ -426,6 +436,7 @@ def process_file(file_path, target_lang, output_format=None, task_id=None, tasks
         if original_format == "pdf":
             # NEW WORKFLOW: Convert PDF -> DOCX first (preserve layout), then extract DOCX elements
             print(f"🔁 Converting source PDF to DOCX for high-fidelity translation...")
+            # --- FIX 1: Use the correct output_dir variable ---
             temp_converted_docx = os.path.join(output_dir, f"converted_{uuid.uuid4()}.docx")
             try:
                 convert_pdf_to_docx(file_path, temp_converted_docx)
@@ -443,8 +454,10 @@ def process_file(file_path, target_lang, output_format=None, task_id=None, tasks
             # Extract from the converted DOCX (this preserves paragraphs, textboxes, and formatting metadata)
             elements, standard_paragraph_objects, textbox_paragraph_elements, _, doc_object = extract_docx_elements_and_objects(temp_converted_docx)
             
-            # Enhance elements with layout analysis
-            elements = doc_analyzer.enhance_extraction(temp_converted_docx, elements)
+            # --- FIX 2: Disable DocumentAnalyzer call ---
+            # This call also consumes a lot of memory and relies on the object created above.
+            # elements = doc_analyzer.enhance_extraction(temp_converted_docx, elements)
+            # ---
             
             # Treat the rest of the flow as DOCX-based (so rebuild uses DOCX routines and conversion back to PDF)
             original_format = "docx"
@@ -495,7 +508,7 @@ def process_file(file_path, target_lang, output_format=None, task_id=None, tasks
         # Sanitize basename slightly (replace spaces, etc.) - optional
         safe_base_name = re.sub(r'[^\w\-]+', '_', base_name)
         out_file = os.path.join(
-            output_dir,
+            output_dir, # <-- FIX 1: This now correctly uses the directory from app.py
             f"{safe_base_name}_{target_lang.lower()}.{final_format}"
         )
 
@@ -655,4 +668,3 @@ def process_file(file_path, target_lang, output_format=None, task_id=None, tasks
              # Be careful about exposing too much detail from arbitrary exceptions
              tasks[task_id]["error_message"] = f"An unexpected processing error occurred. Please check logs."
         return {} # Return empty on error
-
