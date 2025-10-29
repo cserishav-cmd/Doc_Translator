@@ -2,9 +2,9 @@ import os
 import fitz  # Import PyMuPDF
 import re    # Import regular expression module
 import uuid  # Import UUID module
+import shutil # <-- ADDED: For moving files
 from src.translator import translate_elements
 from src.document_analyzer import DocumentAnalyzer  # Add document analyzer
-# UPDATED: Import the new in-place PDF rebuilder
 from src.rebuild import rebuild_pdf_in_place, rebuild_docx_with_lxml, convert_pdf_to_docx, convert_docx_to_pdf
 # --- FIX: Import the Document class type specifically ---
 from docx import Document as DocxDocument # Use alias to avoid conflict if needed later
@@ -582,6 +582,26 @@ def process_file(file_path, target_lang, output_format=None, task_id=None, tasks
                 except Exception as conv_e:
                     print(f"⚠️ convert_docx_to_pdf() failed: {conv_e}")
                     traceback.print_exc()
+                    
+                    # --- NEW FIX: CONVERSION FAILED, SAVE THE DOCX INSTEAD ---
+                    print(f"🔁 Falling back to saving DOCX file as conversion failed.")
+                    try:
+                        # Define a new .docx output path
+                        docx_fallback_path = os.path.splitext(out_file)[0] + ".docx"
+                        # Move the temp_docx to this new path
+                        shutil.move(temp_docx, docx_fallback_path)
+                        # The file to return is now the docx file
+                        out_file = docx_fallback_path
+                        translated_files[target_lang] = os.path.basename(out_file)
+                        # Mark as "succeeded" because we have a valid output file
+                        conversion_succeeded = True 
+                        # Remove temp_docx from list since it's been moved, not deleted
+                        if temp_docx in created_temp_files:
+                            created_temp_files.remove(temp_docx)
+                    except Exception as fallback_save_e:
+                        print(f"❌ Failed to save DOCX fallback: {fallback_save_e}")
+                        # Let it proceed to the next fallback (docx2pdf)
+                    # --- END OF NEW FIX ---
 
                 # Fallback: try docx2pdf (if installed)
                 if not conversion_succeeded:
@@ -655,4 +675,3 @@ def process_file(file_path, target_lang, output_format=None, task_id=None, tasks
              # Be careful about exposing too much detail from arbitrary exceptions
              tasks[task_id]["error_message"] = f"An unexpected processing error occurred. Please check logs."
         return {} # Return empty on error
-
