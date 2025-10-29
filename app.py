@@ -293,14 +293,6 @@ def translate_text_route():
         return jsonify({"error": f"Translation failed: {str(e)}"}), 500
 
 if __name__ == "__main__":
-    # Run on 0.0.0.0 to make it accessible on your network
-    # Your friends can connect using your computer's IP address and port 5000
-    # --- FIX: Changed host to 127.0.0.1 for better tunnel compatibility ---
-    
-    # --- MODIFIED: Make port/host configurable via environment variables ---
-    # Defaults to 0.0.0.0 and port 8080 (or $PORT)
     port = int(os.environ.get("PORT", 10000))
-    # --- MODIFIED: Bind to 0.0.0.0 by default for container/deployment compatibility ---
-    # Note: When running with "python app.py", the manager is not strictly
-    # necessary, but it's required for Gunicorn.
-    app.run(host="0.0.0.0", port=port)
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+
