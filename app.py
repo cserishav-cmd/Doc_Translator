@@ -299,10 +299,8 @@ if __name__ == "__main__":
     
     # --- MODIFIED: Make port/host configurable via environment variables ---
     # Defaults to 0.0.0.0 and port 8080 (or $PORT)
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get("PORT", 10000))
     # --- MODIFIED: Bind to 0.0.0.0 by default for container/deployment compatibility ---
-    host = os.environ.get('HOST', '0.0.0.0')
-    
     # Note: When running with "python app.py", the manager is not strictly
     # necessary, but it's required for Gunicorn.
-    app.run(debug=True, host=host, port=port)
+    app.run(host="0.0.0.0", port=port)
