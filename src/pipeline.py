@@ -320,32 +320,19 @@ def process_file(file_path, target_lang, output_dir, output_format=None, task_id
 
         created_temp_files = []
 
+        # --- THIS LOGIC BLOCK IS REPLACED ---
+        # We will force the PDF-native path to avoid the failing DOCX-to-PDF conversion
         if original_format == "pdf":
-            print(f"🔁 Converting source PDF to DOCX for high-fidelity translation...")
-            # --- FIX 1: Use the correct output_dir variable ---
-            temp_converted_docx = os.path.join(output_dir, f"converted_{uuid.uuid4()}.docx")
-            try:
-                convert_pdf_to_docx(file_path, temp_converted_docx)
-                created_temp_files.append(temp_converted_docx)
-                print(f"  ✅ PDF converted to DOCX: {temp_converted_docx}")
-            except Exception as conv_e:
-                print(f"❌ PDF->DOCX conversion failed: {conv_e}")
-                traceback.print_exc()
-                if task_id and tasks and task_id in tasks:
-                    tasks[task_id]["status"] = "error"
-                    tasks[task_key]["error_message"] = "PDF to DOCX conversion failed."
-                return {}
-
-            elements, standard_paragraph_objects, textbox_paragraph_elements, _, doc_object = extract_docx_elements_and_objects(temp_converted_docx)
-            
-            # --- FIX 2: Disable DocumentAnalyzer call ---
-            # This call also consumes a lot of memory.
-            # elements = doc_analyzer.enhance_extraction(temp_converted_docx, elements)
-            # ---
-            
-            original_format = "docx"
-            file_path = temp_converted_docx
+            print(f"📄 Using PDF-native extraction for: {os.path.basename(file_path)}")
+            elements = extract_pdf_elements(file_path)
+            # We set doc_object to None because we are not processing a DOCX
+            doc_object = None
+            standard_paragraph_objects = None
+            textbox_paragraph_elements = None
+            # We keep original_format as "pdf"
+        
         elif original_format == "docx":
+            # Pass None for textbox_shapes as it's not currently used
             elements, standard_paragraph_objects, textbox_paragraph_elements, _, doc_object = extract_docx_elements_and_objects(file_path)
         else:
             raise ValueError(f"Unsupported file type: {original_format}")
@@ -510,4 +497,5 @@ def process_file(file_path, target_lang, output_dir, output_format=None, task_id
              tasks[task_id]["status"] = "error"
              tasks[task_id]["error_message"] = f"An unexpected processing error occurred. Please check logs."
         return {}
+
 
