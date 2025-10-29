@@ -10,11 +10,11 @@ from google.api_core.exceptions import ResourceExhausted
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "storage/uploads"
-TRANSLATED_FOLDER = "storage/translated"
-
+UPLOAD_FOLDER = "/tmp/uploads"
+TRANSLATED_FOLDER = "/tmp/translated"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(TRANSLATED_FOLDER, exist_ok=True)
+
 
 # --- NEW: In-memory task tracker ---
 # This simple dict is thread-safe and will be shared
