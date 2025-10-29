@@ -2,9 +2,7 @@
   "builds": [
     { "src": "index.py", "use": "@vercel/python" }
   ],
-  "functions": {
-    "api/*.js": {
-      "runtime": "vercel-node@3.0.0"
-    }
-  }
+  "routes": [
+    { "src": "/(.*)", "dest": "/index.py" }
+  ]
 }
