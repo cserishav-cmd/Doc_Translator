@@ -293,5 +293,12 @@ if __name__ == "__main__":
     # Run on 0.0.0.0 to make it accessible on your network
     # Your friends can connect using your computer's IP address and port 5000
     # --- FIX: Changed host to 127.0.0.1 for better tunnel compatibility ---
-    app.run(debug=True, host='127.0.0.1', port=8080)
+    
+    # --- MODIFIED: Make port/host configurable via environment variables ---
+    # Defaults to 0.0.0.0 and port 8080 (or $PORT)
+    port = int(os.environ.get('PORT', 8080))
+    # --- MODIFIED: Bind to 0.0.0.0 by default for container/deployment compatibility ---
+    host = os.environ.get('HOST', '0.0.0.0')
+    
+    app.run(debug=True, host=host, port=port)
 
