@@ -7,7 +7,7 @@ layoutparser==0.3.4
 numpy==1.26.4
 tqdm==4.66.1
 python-dotenv==1.0.0
-Pillow==1.0.1
+Pillow==10.1.0
 pinecone-client==2.2.4
 langdetect==1.0.9
 PyMuPDF==1.23.8
