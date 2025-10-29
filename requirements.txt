@@ -16,3 +16,8 @@ gunicorn
 langchain-google-genai
 torch
 pytest-shutil
+google-api-core
+python-docx
+lxml
+pdf2docx
+docx2pdf
