@@ -6,6 +6,7 @@ from src.pipeline import process_file
 from src.image_ocr import process_image_file
 from src.config import llm
 from google.api_core.exceptions import ResourceExhausted
+from multiprocessing import Manager  # <-- ADDED: For sharing state between processes
 
 app = Flask(__name__)
 
@@ -17,7 +18,10 @@ os.makedirs(TRANSLATED_FOLDER, exist_ok=True)
 
 # --- NEW: In-memory task tracker ---
 # In a production app, you'd use a database or Redis
-tasks = {}
+# --- MODIFIED: Use a multiprocessing.Manager.dict to share state between Gunicorn workers ---
+manager = Manager()
+tasks = manager.dict()
+
 
 def run_translation_task(task_id, file_path, target_lang, output_format=None):
     """
@@ -300,5 +304,7 @@ if __name__ == "__main__":
     # --- MODIFIED: Bind to 0.0.0.0 by default for container/deployment compatibility ---
     host = os.environ.get('HOST', '0.0.0.0')
     
+    # Note: When running with "python app.py", the manager is not strictly
+    # necessary, but it's required for Gunicorn.
     app.run(debug=True, host=host, port=port)
 
