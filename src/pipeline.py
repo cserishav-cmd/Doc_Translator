@@ -668,3 +668,4 @@ def process_file(file_path, target_lang, output_dir, output_format=None, task_id
              # Be careful about exposing too much detail from arbitrary exceptions
              tasks[task_id]["error_message"] = f"An unexpected processing error occurred. Please check logs."
         return {} # Return empty on error
+
