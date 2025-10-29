@@ -9,11 +9,13 @@ from google.api_core.exceptions import ResourceExhausted
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "/tmp/uploads"
-TRANSLATED_FOLDER = "/tmp/translated"
+UPLOAD_FOLDER = "storage/uploads"
+TRANSLATED_FOLDER = "storage/translated"
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(TRANSLATED_FOLDER, exist_ok=True)
 
+# In-memory task tracker
 tasks = {}
 
 def run_translation_task(task_id, file_path, target_lang, output_format=None):
@@ -25,219 +27,136 @@ def run_translation_task(task_id, file_path, target_lang, output_format=None):
         tasks[task_id]["status"] = "processing"
         tasks[task_id]["progress"] = 0
         
-        # --- FIX: Pass the correct TRANSLATED_FOLDER to the pipeline ---
+        # Pass output_format to process_file
         translated_file_paths_dict = process_file(
             file_path, 
             target_lang, 
-            TRANSLATED_FOLDER,  # <-- Pass the correct output folder
             output_format,
             task_id, 
             tasks
         )
         
-        translated_file = None
-        if translated_file_paths_dict:
-            if target_lang in translated_file_paths_dict:
-                translated_file = translated_file_paths_dict[target_lang]
-            else:
-                for lang, filename in translated_file_paths_dict.items():
-                    if filename:
-                        translated_file = filename
-                        break
+        # Extract the translated file path
+        if not translated_file_paths_dict or target_lang not in translated_file_paths_dict:
+            raise Exception(f"Translation output file not found for lang: {target_lang}")
+
+        translated_file_path = translated_file_paths_dict[target_lang]
         
-        if translated_file:
-            file_exists = os.path.exists(os.path.join(TRANSLATED_FOLDER, translated_file))
-            if not file_exists:
-                raise Exception(f"Translated file '{translated_file}' was not found in storage")
-        
-        tasks[task_id]["status"] = "completed"
+        tasks[task_id]["status"] = "complete"
         tasks[task_id]["progress"] = 100
-        tasks[task_id]["output_files"] = translated_file_paths_dict
-        tasks[task_id]["translated_file"] = translated_file
-        
-        if translated_file:
-            tasks[task_id]["download_url"] = f"/download/{translated_file}"
-            print(f"✅ Translation completed. Download URL: {tasks[task_id]['download_url']}")
-        else:
-            raise Exception("No translated file was generated")
+        tasks[task_id]["download_url"] = f"/download/{os.path.basename(translated_file_path)}"
+        tasks[task_id]["result_file"] = os.path.basename(translated_file_path)
 
     except ResourceExhausted:
-        print("❌ ERROR: API quota exceeded.")
+        print(f"⛔ Quota Exceeded for task {task_id}")
         tasks[task_id]["status"] = "error"
-        tasks[task_id]["error"] = "Translation failed: You have exceeded your API quota for the day. Please try again later."
+        tasks[task_id]["error_message"] = "API Quota Exceeded. Please try again later."
     except Exception as e:
-        print(f"❌ An unexpected error occurred: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Error in task {task_id}: {e}")
         tasks[task_id]["status"] = "error"
-        tasks[task_id]["error"] = f"An unexpected error occurred: {str(e)}"
+        tasks[task_id]["error_message"] = str(e)
 
-
-def run_image_ocr_task(task_id, file_path, target_lang):
+def run_image_translation_task(task_id, file_path, target_lang):
     """
-    Wrapper for image OCR and translation processing.
+    Wrapper for image translation task.
     """
     global tasks
     try:
         tasks[task_id]["status"] = "processing"
-        tasks[task_id]["progress"] = 0
+        tasks[task_id]["progress"] = 10
         
         result = process_image_file(file_path, target_lang, task_id, tasks)
         
-        tasks[task_id]["status"] = "completed"
+        tasks[task_id]["status"] = "complete"
         tasks[task_id]["progress"] = 100
+        tasks[task_id]["download_url"] = result["download_url"]
+        tasks[task_id]["result_file"] = result["translated_text_file"]
         tasks[task_id]["original_text"] = result["original_text"]
         tasks[task_id]["translated_text"] = result["translated_text"]
-        tasks[task_id]["translated_text_file"] = result["translated_text_file"]
-        tasks[task_id]["download_url"] = result["download_url"]
-        
-        print(f"✅ Image OCR and translation completed. Download URL: {result['download_url']}")
 
     except ResourceExhausted:
-        print("❌ ERROR: API quota exceeded.")
+        print(f"⛔ Quota Exceeded for task {task_id}")
         tasks[task_id]["status"] = "error"
-        tasks[task_id]["error"] = "Translation failed: You have exceeded your API quota for the day. Please try again later."
+        tasks[task_id]["error_message"] = "API Quota Exceeded. Please try again later."
     except Exception as e:
-        print(f"❌ Image OCR error: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Error in task {task_id}: {e}")
         tasks[task_id]["status"] = "error"
-        tasks[task_id]["error"] = f"Image processing failed: {str(e)}"
-
+        tasks[task_id]["error_message"] = str(e)
 
 @app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route("/upload", methods=["POST"])
 @app.route("/upload_document", methods=["POST"])
 def upload_document():
-    """
-    Upload handler for PDF and DOCX documents.
-    """
-    global tasks
+    if "document" not in request.files:
+        return jsonify({"error": "No file part"}), 400
     
-    if "file" not in request.files:
-        return jsonify({"error": "No file part in request."}), 400
+    file = request.files["document"]
+    target_lang = request.form.get("target_lang", "Hindi")
+    output_format = request.form.get("output_format", "original") # Get format
 
-    file = request.files["file"]
     if file.filename == "":
-        return jsonify({"error": "No file selected."}), 400
+        return jsonify({"error": "No selected file"}), 400
 
-    filename: str = file.filename if file.filename else "document.pdf"
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(file_path)
-    print(f"✅ Uploaded document to {file_path}")
-
-    try:
-        target_lang = request.form.get("target_lang", "hindi")
-        output_format = request.form.get("output_format", None)
-        print(f"✅ Target: {target_lang}, Format: {output_format or 'original'}")
+    if file:
+        original_filename = file.filename
+        file_ext = os.path.splitext(original_filename)[1]
+        
+        # Save the uploaded file
+        upload_path = os.path.join(UPLOAD_FOLDER, original_filename)
+        file.save(upload_path)
         
         task_id = str(uuid.uuid4())
-        tasks[task_id] = {"status": "starting", "progress": 0}
-
-        thread = threading.Thread(
-            target=run_translation_task,
-            args=(task_id, file_path, target_lang, output_format)
-        )
+        tasks[task_id] = {
+            "status": "pending", 
+            "original_file": original_filename
+        }
+        
+        # Check if image file
+        image_extensions = {'.png', '.jpg', '.jpeg', '.webp', '.bmp'}
+        if file_ext.lower() in image_extensions:
+            # Start image translation thread
+            thread = threading.Thread(
+                target=run_image_translation_task, 
+                args=(task_id, upload_path, target_lang)
+            )
+        else:
+            # Start document translation thread
+            thread = threading.Thread(
+                target=run_translation_task, 
+                args=(task_id, upload_path, target_lang, output_format)
+            )
+            
         thread.start()
         
         return jsonify({"task_id": task_id})
 
-    except Exception as e:
-        print(f"❌ An unexpected error occurred during document upload: {e}")
-        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
-
-
-@app.route("/upload_image", methods=["POST"])
-def upload_image():
-    """
-    Upload handler for image files (PNG, JPG, JPEG) with OCR processing.
-    """
-    global tasks
-    
-    if "file" not in request.files:
-        return jsonify({"error": "No file part in request."}), 400
-
-    file = request.files["file"]
-    if file.filename == "":
-        return jsonify({"error": "No file selected."}), 400
-
-    filename: str = file.filename if file.filename else "image.png"
-    
-    ext = os.path.splitext(filename)[1].lower()
-    if ext not in ['.png', '.jpg', '.jpeg']:
-        return jsonify({"error": "Invalid file type. Please upload PNG, JPG, or JPEG images."}), 400
-    
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(file_path)
-    print(f"✅ Uploaded image to {file_path}")
-
-    try:
-        target_lang = request.form.get("target_lang", "hindi")
-        print(f"✅ Target language for OCR: {target_lang}")
-        
-        task_id = str(uuid.uuid4())
-        tasks[task_id] = {"status": "starting", "progress": 0}
-
-        thread = threading.Thread(
-            target=run_image_ocr_task,
-            args=(task_id, file_path, target_lang)
-        )
-        thread.start()
-        
-        return jsonify({"task_id": task_id})
-
-    except Exception as e:
-        print(f"❌ An unexpected error occurred during image upload: {e}")
-        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
-
-
-@app.route("/status/<task_id>")
 @app.route("/task_status/<task_id>")
-def status(task_id):
-    """
-    Route that allows the client to poll for the status of a task.
-    """
-    global tasks
+def task_status(task_id):
     task = tasks.get(task_id)
     if not task:
-        return jsonify({"status": "not_found"}), 404
-    
+        return jsonify({"error": "Task not found"}), 404
     return jsonify(task)
-
 
 @app.route("/download/<filename>")
 def download(filename):
-    """
-    Download translated file from storage.
-    """
-    try:
-        file_path = os.path.join(TRANSLATED_FOLDER, filename)
-        if not os.path.exists(file_path):
-            print(f"❌ Download failed: File not found - {file_path}")
-            return jsonify({"error": "File not found"}), 404
-        
-        print(f"✅ Serving download: {filename}")
-        return send_from_directory(TRANSLATED_FOLDER, filename, as_attachment=True)
-    except Exception as e:
-        print(f"❌ Download error: {e}")
-        return jsonify({"error": f"Download failed: {str(e)}"}), 500
+    return send_from_directory(TRANSLATED_FOLDER, filename, as_attachment=True)
 
 @app.route("/translate_text", methods=["POST"])
-def translate_text_route():
-    """
-    Route for text translation without file upload.
-    """
+def translate_text():
     try:
-        data = request.get_json()
-        text = data.get('text', '')
-        target_lang = data.get('target_lang', 'hindi')
+        data = request.json
+        text = data.get("text")
+        target_lang = data.get("target_lang", "Hindi")
         
         if not text:
             return jsonify({"error": "No text provided"}), 400
         
+        if not llm:
+             return jsonify({"error": "LLM not initialized. Check API key."}), 500
+
+        # Simple prompt to translate text directly
         prompt = f"""
         You are a professional translator. Translate the following text to {target_lang}.
         Preserve any formatting, line breaks, and maintain the original tone.
@@ -253,6 +172,7 @@ def translate_text_route():
         response = llm.invoke(prompt)
         translated_text = response.content if hasattr(response, 'content') else str(response)
         
+        # Ensure translated_text is a string
         if not isinstance(translated_text, str):
             translated_text = str(translated_text)
         
@@ -269,5 +189,10 @@ def translate_text_route():
         return jsonify({"error": f"Translation failed: {str(e)}"}), 500
 
 if __name__ == "__main__":
+    # --- FIX FOR RENDER ---
+    # 1. Bind to '0.0.0.0' to be accessible externally.
+    # 2. Use the 'PORT' environment variable provided by Render,
+    #    defaulting to 10000 (which you saw in logs) if not set.
+    # ----------------------
     port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+    app.run(host='0.0.0.0', port=port, debug=True)
