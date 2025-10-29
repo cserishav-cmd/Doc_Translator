@@ -1,37 +1,16 @@
-# Core Web Framework
+
+
 Flask==3.0.0
-
-# AI/LLM Integration (Cloud-based, no GPU needed)
-langchain==0.1.0
-langchain-core==0.1.9
-langchain-google-genai==0.0.6
-google-generativeai==0.3.2
-openai==1.6.1
-
-# OCR and Document Processing
-PyMuPDF==1.23.8  # For PDF text extraction
-tesserocr==2.6.3  # Enhanced OCR with better layout analysis
-python-docx==1.1.0
 pdf2docx==0.5.8
 reportlab==4.0.7
 PyPDF2==3.0.1
-transformers==4.37.2  # For LayoutLM document understanding
-layoutparser==0.3.4  # Removed paddledetection for Python 3.12 compatibility
-
-# Utilities
+transformers==4.37.2
+layoutparser==0.3.4
 numpy==1.26.4
 tqdm==4.66.1
 python-dotenv==1.0.0
 Pillow==10.1.0
-
-# Vector Database
 pinecone-client==2.2.4
-
-# Windows-specific (conditional)
-comtypes==1.2.0; sys_platform == 'win32'
-
-
-Pillow==10.1.0
 langdetect==1.0.9
 PyMuPDF==1.23.8
 google-generativeai==0.7.1
