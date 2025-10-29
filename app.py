@@ -6,7 +6,6 @@ from src.pipeline import process_file
 from src.image_ocr import process_image_file
 from src.config import llm
 from google.api_core.exceptions import ResourceExhausted
-# <-- REMOVED: multiprocessing.Manager is not needed with a single-worker, multi-threaded setup
 
 app = Flask(__name__)
 
@@ -15,12 +14,7 @@ TRANSLATED_FOLDER = "/tmp/translated"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(TRANSLATED_FOLDER, exist_ok=True)
 
-
-# --- NEW: In-memory task tracker ---
-# This simple dict is thread-safe and will be shared
-# when Gunicorn runs with `--workers 1 --threads 4`
 tasks = {}
-
 
 def run_translation_task(task_id, file_path, target_lang, output_format=None):
     """
@@ -32,31 +26,25 @@ def run_translation_task(task_id, file_path, target_lang, output_format=None):
         tasks[task_id]["progress"] = 0
         
         # --- FIX: Pass the correct TRANSLATED_FOLDER to the pipeline ---
-        # The TRANSLATED_FOLDER variable from the top of app.py is now passed as the third argument.
         translated_file_paths_dict = process_file(
             file_path, 
             target_lang, 
-            TRANSLATED_FOLDER,  # <-- THIS ARGUMENT WAS ADDED
+            TRANSLATED_FOLDER,  # <-- Pass the correct output folder
             output_format,
             task_id, 
             tasks
         )
         
-        # Extract the translated file path
-        # translated_file_paths_dict structure: {target_lang: filename} e.g., {"hindi": "document_hindi.pdf"}
         translated_file = None
         if translated_file_paths_dict:
-            # The dict contains target_lang as key and filename as value
             if target_lang in translated_file_paths_dict:
                 translated_file = translated_file_paths_dict[target_lang]
             else:
-                # Fallback: get the first available value
                 for lang, filename in translated_file_paths_dict.items():
                     if filename:
                         translated_file = filename
                         break
         
-        # Check if file was actually created
         if translated_file:
             file_exists = os.path.exists(os.path.join(TRANSLATED_FOLDER, translated_file))
             if not file_exists:
@@ -67,7 +55,6 @@ def run_translation_task(task_id, file_path, target_lang, output_format=None):
         tasks[task_id]["output_files"] = translated_file_paths_dict
         tasks[task_id]["translated_file"] = translated_file
         
-        # Add download URL if file exists
         if translated_file:
             tasks[task_id]["download_url"] = f"/download/{translated_file}"
             print(f"✅ Translation completed. Download URL: {tasks[task_id]['download_url']}")
@@ -95,7 +82,6 @@ def run_image_ocr_task(task_id, file_path, target_lang):
         tasks[task_id]["status"] = "processing"
         tasks[task_id]["progress"] = 0
         
-        # Process image with OCR
         result = process_image_file(file_path, target_lang, task_id, tasks)
         
         tasks[task_id]["status"] = "completed"
@@ -138,7 +124,6 @@ def upload_document():
     if file.filename == "":
         return jsonify({"error": "No file selected."}), 400
 
-    # Type assertion for linter - file.filename is guaranteed to be str here
     filename: str = file.filename if file.filename else "document.pdf"
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(file_path)
@@ -149,18 +134,15 @@ def upload_document():
         output_format = request.form.get("output_format", None)
         print(f"✅ Target: {target_lang}, Format: {output_format or 'original'}")
         
-        # Create task
         task_id = str(uuid.uuid4())
         tasks[task_id] = {"status": "starting", "progress": 0}
 
-        # Start the background thread for document translation
         thread = threading.Thread(
             target=run_translation_task,
             args=(task_id, file_path, target_lang, output_format)
         )
         thread.start()
         
-        # Return the task_id to the client
         return jsonify({"task_id": task_id})
 
     except Exception as e:
@@ -182,10 +164,8 @@ def upload_image():
     if file.filename == "":
         return jsonify({"error": "No file selected."}), 400
 
-    # Type assertion for linter
     filename: str = file.filename if file.filename else "image.png"
     
-    # Validate image file extension
     ext = os.path.splitext(filename)[1].lower()
     if ext not in ['.png', '.jpg', '.jpeg']:
         return jsonify({"error": "Invalid file type. Please upload PNG, JPG, or JPEG images."}), 400
@@ -198,18 +178,15 @@ def upload_image():
         target_lang = request.form.get("target_lang", "hindi")
         print(f"✅ Target language for OCR: {target_lang}")
         
-        # Create task
         task_id = str(uuid.uuid4())
         tasks[task_id] = {"status": "starting", "progress": 0}
 
-        # Start the background thread for image OCR
         thread = threading.Thread(
             target=run_image_ocr_task,
             args=(task_id, file_path, target_lang)
         )
         thread.start()
         
-        # Return the task_id to the client
         return jsonify({"task_id": task_id})
 
     except Exception as e:
@@ -222,7 +199,6 @@ def upload_image():
 def status(task_id):
     """
     Route that allows the client to poll for the status of a task.
-    Supports both /status/<task_id> and /task_status/<task_id> routes.
     """
     global tasks
     task = tasks.get(task_id)
@@ -252,7 +228,7 @@ def download(filename):
 @app.route("/translate_text", methods=["POST"])
 def translate_text_route():
     """
-    NEW: Route for text translation without file upload.
+    Route for text translation without file upload.
     """
     try:
         data = request.get_json()
@@ -262,7 +238,6 @@ def translate_text_route():
         if not text:
             return jsonify({"error": "No text provided"}), 400
         
-        # Use the LLM to translate text directly
         prompt = f"""
         You are a professional translator. Translate the following text to {target_lang}.
         Preserve any formatting, line breaks, and maintain the original tone.
@@ -278,7 +253,6 @@ def translate_text_route():
         response = llm.invoke(prompt)
         translated_text = response.content if hasattr(response, 'content') else str(response)
         
-        # Ensure translated_text is a string
         if not isinstance(translated_text, str):
             translated_text = str(translated_text)
         
@@ -297,3 +271,4 @@ def translate_text_route():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+
