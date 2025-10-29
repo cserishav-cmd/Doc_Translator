@@ -1,0 +1,10 @@
+{
+  "builds": [
+    { "src": "app.py", "use": "@vercel/python" }
+  ],
+  "functions": {
+    "api//*.py": {
+      "runtime": "python3.11"
+    }
+  }
+}
