@@ -109,7 +109,7 @@ def _translate_batch(batch, target_lang, system_prompt):
         protected_text, restoration_map = _protect_content(text)
 
         original_texts.append(protected_text)
-        restoration_maps.append(restoration_map)
+        restoration_maps..append(restoration_map)
 
     # 2. Combine batch into a single prompt string
     prompt_string = "|||".join(original_texts)
@@ -182,8 +182,8 @@ def translate_elements(elements, target_lang, task_id=None, tasks=None):
             # Append original batch on error
             translated_elements.extend(deepcopy(batch))
         
-        time.sleep(1) # To respect API rate limits
+        # --- FIX: Increase sleep time to 3 seconds to avoid API rate limits ---
+        time.sleep(3) # To respect API rate limits
 
     print("--- Translation complete ---")
     return translated_elements
-
