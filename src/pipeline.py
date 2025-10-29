@@ -4,7 +4,8 @@ import re    # Import regular expression module
 import uuid  # Import UUID module
 import shutil # <-- ADDED: For moving files
 from src.translator import translate_elements
-from src.document_analyzer import DocumentAnalyzer  # Add document analyzer
+# from src.document_analyzer import DocumentAnalyzer  # <-- DISABLED: This was causing the long download
+# UPDATED: Import the new in-place PDF rebuilder
 from src.rebuild import rebuild_pdf_in_place, rebuild_docx_with_lxml, convert_pdf_to_docx, convert_docx_to_pdf
 # --- FIX: Import the Document class type specifically ---
 from docx import Document as DocxDocument # Use alias to avoid conflict if needed later
@@ -400,7 +401,7 @@ def process_file(file_path, target_lang, output_format=None, task_id=None, tasks
     textbox_shapes = None # Keep variable, though unused in rebuild
     
     # Initialize document analyzer for enhanced processing
-    doc_analyzer = DocumentAnalyzer()
+    # doc_analyzer = DocumentAnalyzer() # <-- DISABLED: This was causing the long download
     elements = []
     original_format = ""
     output_dir = "storage/translated"
@@ -444,7 +445,7 @@ def process_file(file_path, target_lang, output_format=None, task_id=None, tasks
             elements, standard_paragraph_objects, textbox_paragraph_elements, _, doc_object = extract_docx_elements_and_objects(temp_converted_docx)
             
             # Enhance elements with layout analysis
-            elements = doc_analyzer.enhance_extraction(temp_converted_docx, elements)
+            # elements = doc_analyzer.enhance_extraction(temp_converted_docx, elements) # <-- DISABLED: This was causing the long download
             
             # Treat the rest of the flow as DOCX-based (so rebuild uses DOCX routines and conversion back to PDF)
             original_format = "docx"
@@ -675,3 +676,4 @@ def process_file(file_path, target_lang, output_format=None, task_id=None, tasks
              # Be careful about exposing too much detail from arbitrary exceptions
              tasks[task_id]["error_message"] = f"An unexpected processing error occurred. Please check logs."
         return {} # Return empty on error
+
