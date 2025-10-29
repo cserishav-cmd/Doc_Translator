@@ -31,11 +31,13 @@ def run_translation_task(task_id, file_path, target_lang, output_format=None):
         tasks[task_id]["status"] = "processing"
         tasks[task_id]["progress"] = 0
         
-        # Pass output_format to process_file
+        # --- FIX: Pass the correct TRANSLATED_FOLDER to the pipeline ---
+        # The TRANSLATED_FOLDER variable from the top of app.py is now passed as the third argument.
         translated_file_paths_dict = process_file(
             file_path, 
             target_lang, 
-            output_format,  # NEW parameter
+            TRANSLATED_FOLDER,  # <-- THIS ARGUMENT WAS ADDED
+            output_format,
             task_id, 
             tasks
         )
@@ -295,4 +297,3 @@ def translate_text_route():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
-
