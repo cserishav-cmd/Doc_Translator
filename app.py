@@ -7,7 +7,14 @@ from src.image_ocr import process_image_file
 from src.config import llm
 from google.api_core.exceptions import ResourceExhausted
 
-app = Flask(__name__)
+app = Flask(__name__) ###
+
+@app.route('/')
+def home():
+    return "Hello from Flask on Vercel!"
+
+if __name__ == '__main__':
+    app.run() #last
 
 UPLOAD_FOLDER = "storage/uploads"
 TRANSLATED_FOLDER = "storage/translated"
